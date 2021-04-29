@@ -79,7 +79,13 @@ func getRepentanceSaveDataPath() string {
 	}
 
 	// Must use "filepath" instead of "path" to avoid Windows bugs
-	return filepath.Join(documentsDir, "My Games", "Binding of Isaac Repentance")
+	repentanceSaveDataPath := filepath.Join(documentsDir, "My Games", "Binding of Isaac Repentance")
+
+	if !fileExists(repentanceSaveDataPath) {
+		fatal("Failed to find your Repentance save data directory at \"" + repentanceSaveDataPath + "\".")
+	}
+
+	return repentanceSaveDataPath
 }
 
 func disableSteamCloud(repentanceSaveDataPath string) {
