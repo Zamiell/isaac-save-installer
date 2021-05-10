@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -13,14 +12,13 @@ func exit() {
 }
 
 func fatal(msg string) {
-	log.Println(msg)
+	fmt.Println(msg)
 	exit()
 }
 
 func fatalError(msg string, err error) {
-	log.Printf(msg+"\n", err)
+	fmt.Print(msg+"\n", err)
 	exit()
-
 }
 
 func fileExists(filePath string) bool {

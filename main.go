@@ -18,38 +18,23 @@ const (
 
 func main() {
 	printBanner()
-	getUserToAgreeToDeletingSaveFiles()
 	checkIsIsaacOpen()
-	repentanceSaveDataPath := getRepentanceSaveDataPath()
-	disableSteamCloud(repentanceSaveDataPath)
-	deleteExistingSaveFiles(repentanceSaveDataPath)
-	installSaveFile(repentanceSaveDataPath)
-
-	fmt.Println("A fully unlocked save file has been installed to save slot 1.")
+	getUserToAgreeToDeletingSaveFiles()
+	isaacVersion := getUserIsaacVersion()
+	saveDataPath := getSaveDataPath(isaacVersion)
+	disableSteamCloud(saveDataPath)
+	deleteExistingSaveFiles(saveDataPath)
+	installSaveFiles(isaacVersion, saveDataPath)
+	confirmExit()
 }
 
 func printBanner() {
 	fmt.Println("+------------------------------------+")
-	fmt.Println("|  The Binding of Isaac: Repentance  |")
+	fmt.Println("|   The Binding of Isaac: Rebirth    |")
+	fmt.Println("|             (and DLCs)             |")
 	fmt.Println("| Fully Unlocked Save File Installer |")
 	fmt.Println("+------------------------------------+")
 	fmt.Println()
-}
-
-func getUserToAgreeToDeletingSaveFiles() {
-	// Skip getting user input if they specified the "--yes" flag
-	if len(os.Args) > 1 && os.Args[1] == "--yes" {
-		return
-	}
-
-	fmt.Println("Hello. I will now install a fully unlocked save file.")
-	fmt.Println("Type \"yes\" and press enter if you agree that I can delete any existing save files, if any.")
-	var userInput string
-	fmt.Scanln(&userInput)
-	fmt.Println()
-	if userInput != "yes" {
-		fatal("Ok then. Manually back up your save files and then summon me again.")
-	}
 }
 
 func checkIsIsaacOpen() {
@@ -62,12 +47,58 @@ func checkIsIsaacOpen() {
 
 	for _, process := range processes {
 		if process.Executable() == "isaac-ng.exe" {
-			fatal("Error: You are currently running The Binding of Isaac: Repentance. Close the game before you run this installer.")
+			fatal("Error: You are currently running The Binding of Isaac: Rebirth. Close the game before you run this installer.")
 		}
 	}
 }
 
-func getRepentanceSaveDataPath() string {
+func getUserToAgreeToDeletingSaveFiles() {
+	// Skip getting user input if they specified the "--yes" flag
+	if len(os.Args) > 1 && os.Args[1] == "--yes" {
+		return
+	}
+
+	fmt.Println("Hello. I will install a fully unlocked save file for you.")
+	fmt.Println("Type \"yes\" and press enter if you agree that I can delete existing save files, if any.")
+
+	var userInput string
+	fmt.Scanln(&userInput)
+	fmt.Println()
+	if userInput != "yes" {
+		fatal("Ok then. Manually back up your save files and then summon me again.")
+	}
+}
+
+func getUserIsaacVersion() IsaacVersion {
+	fmt.Println("Which game do you want to install a save file for?")
+	fmt.Println("1) The Binding of Isaac: Rebirth")
+	fmt.Println("2) The Binding of Isaac: Afterbirth")
+	fmt.Println("3) The Binding of Isaac: Afterbirth+")
+	fmt.Println("4) The Binding of Isaac: Repentance")
+	fmt.Println("[Type the number and press enter.]")
+
+	var userInput string
+	fmt.Scanln(&userInput)
+	fmt.Println()
+
+	var isaacVersion IsaacVersion
+	switch userInput {
+	case "1":
+		isaacVersion = Rebirth
+	case "2":
+		isaacVersion = Afterbirth
+	case "3":
+		isaacVersion = AfterbirthPlus
+	case "4":
+		isaacVersion = Repentance
+	default:
+		fatal("That is not a valid option. Exiting.")
+	}
+
+	return isaacVersion
+}
+
+func getSaveDataPath(isaacVersion IsaacVersion) string {
 	// From: https://superuser.com/questions/1132288/windows-command-prompt-get-relocated-users-documents-folder
 	cmd := exec.Command("powershell", "[Environment]::GetFolderPath('MyDocuments')")
 	var documentsDir string
@@ -79,17 +110,31 @@ func getRepentanceSaveDataPath() string {
 	}
 
 	// Must use "filepath" instead of "path" to avoid Windows bugs
-	repentanceSaveDataPath := filepath.Join(documentsDir, "My Games", "Binding of Isaac Repentance")
+	myGamesPath := filepath.Join(documentsDir, "My Games")
 
-	if !fileExists(repentanceSaveDataPath) {
-		fatal("Failed to find your Repentance save data directory at \"" + repentanceSaveDataPath + "\".")
+	var saveDataPath string
+	if isaacVersion == Rebirth {
+		saveDataPath = filepath.Join(myGamesPath, "Binding of Isaac Rebirth")
+	} else if isaacVersion == Afterbirth {
+		saveDataPath = filepath.Join(myGamesPath, "Binding of Isaac Afterbirth")
+	} else if isaacVersion == AfterbirthPlus {
+		saveDataPath = filepath.Join(myGamesPath, "Binding of Isaac Afterbirth+")
+	} else if isaacVersion == Repentance {
+		saveDataPath = filepath.Join(myGamesPath, "Binding of Isaac Repentance")
+	} else {
+		msg := fmt.Sprintf("Unknown Isaac version of: %d", isaacVersion)
+		fatal(msg)
 	}
 
-	return repentanceSaveDataPath
+	if !fileExists(saveDataPath) {
+		fatal("Failed to find your save data directory at \"" + saveDataPath + "\".")
+	}
+
+	return saveDataPath
 }
 
-func disableSteamCloud(repentanceSaveDataPath string) {
-	optionsINIPath := filepath.Join(repentanceSaveDataPath, "options.ini")
+func disableSteamCloud(saveDataPath string) {
+	optionsINIPath := filepath.Join(saveDataPath, "options.ini")
 
 	// Check to see if the "options.ini" file exists
 	if !fileExists(optionsINIPath) {
@@ -130,15 +175,36 @@ func deleteExistingSaveFiles(repentanceSaveDataPath string) {
 	}
 }
 
-func installSaveFile(repentanceSaveDataPath string) {
-	safeFilePath := filepath.Join(repentanceSaveDataPath, "persistentgamedata1.dat")
-	saveFile := unpackSaveFile()
-	if err := ioutil.WriteFile(safeFilePath, saveFile, DefaultFileMode); err != nil {
-		fatalError("Failed to write to the \"options.ini\" file:", err)
+func installSaveFiles(isaacVersion IsaacVersion, saveDataPath string) {
+	for slot := 1; slot <= 3; slot++ {
+		installSaveFile(isaacVersion, saveDataPath, slot)
 	}
 }
 
-func unpackSaveFile() []byte {
+func installSaveFile(isaacVersion IsaacVersion, saveDataPath string, slot int) {
+	fileName := fmt.Sprintf("persistentgamedata%d.dat", slot)
+	safeFilePath := filepath.Join(saveDataPath, fileName)
+	saveFile := unpackSaveFile(isaacVersion)
+	if err := ioutil.WriteFile(safeFilePath, saveFile, DefaultFileMode); err != nil {
+		fatalError("Failed to write to the \""+safeFilePath+"\" file:", err)
+	}
+}
+
+func unpackSaveFile(isaacVersion IsaacVersion) []byte {
+	var saveFileBase64 string
+	if isaacVersion == Rebirth {
+		saveFileBase64 = saveFileRebirthBase64
+	} else if isaacVersion == Afterbirth {
+		saveFileBase64 = saveFileAfterbirthBase64
+	} else if isaacVersion == AfterbirthPlus {
+		saveFileBase64 = saveFileAfterbirthPlusBase64
+	} else if isaacVersion == Repentance {
+		saveFileBase64 = saveFileRepentanceBase64
+	} else {
+		msg := fmt.Sprintf("Unknown Isaac version of: %d", isaacVersion)
+		fatal(msg)
+	}
+
 	safeFileBase64Trimmed := strings.TrimSpace(saveFileBase64)
 	if decoded, err := base64.StdEncoding.DecodeString(safeFileBase64Trimmed); err != nil {
 		fatalError("Failed to decode the save file: %v", err)
@@ -146,4 +212,11 @@ func unpackSaveFile() []byte {
 	} else {
 		return decoded
 	}
+}
+
+func confirmExit() {
+	fmt.Println("A fully unlocked save file has been installed to all 3 save slots.")
+	fmt.Println("Press enter to exit.")
+	var userInput string
+	fmt.Scanln(&userInput)
 }
