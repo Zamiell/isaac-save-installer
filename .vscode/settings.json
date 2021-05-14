@@ -1,0 +1,26 @@
+// These are Visual Studio Code settings that should apply to this particular repository
+{
+  // ----------------
+  // Vanilla settings
+  // ----------------
+
+  "editor.rulers": [100],
+
+  // Linux line endings are used in this project
+  "files.eol": "\n",
+
+  // Automatically removing all trailing whitespace when saving a file
+  "files.trimTrailingWhitespace": true,
+
+  // ------
+  // Golang
+  // ------
+
+  // The default Golang linter is golint, which is only concerned with coding style
+  // GolangCI-Lint does a suite of different checks
+  "go.lintTool": "golangci-lint",
+
+  // This is recommended as per the GolangCI-Lint README file
+  // https://github.com/golangci/golangci-lint/blob/master/README.md
+  "go.lintFlags": ["--fast"],
+}

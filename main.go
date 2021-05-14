@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -73,8 +74,9 @@ func getUserIsaacVersion() IsaacVersion {
 	fmt.Println("Which game do you want to install a save file for?")
 	fmt.Println("1) The Binding of Isaac: Rebirth")
 	fmt.Println("2) The Binding of Isaac: Afterbirth")
-	fmt.Println("3) The Binding of Isaac: Afterbirth+")
-	fmt.Println("4) The Binding of Isaac: Repentance")
+	fmt.Println("3) The Binding of Isaac: Afterbirth+ (Vanilla through Booster Pack 4)")
+	fmt.Println("4) The Binding of Isaac: Afterbirth+ (Booster Pack 5)")
+	fmt.Println("5) The Binding of Isaac: Repentance")
 	fmt.Println("[Type the number and press enter.]")
 
 	var userInput string
@@ -90,6 +92,8 @@ func getUserIsaacVersion() IsaacVersion {
 	case "3":
 		isaacVersion = AfterbirthPlus
 	case "4":
+		isaacVersion = AfterbirthPlusBP5
+	case "5":
 		isaacVersion = Repentance
 	default:
 		fatal("That is not a valid option. Exiting.")
@@ -99,6 +103,25 @@ func getUserIsaacVersion() IsaacVersion {
 }
 
 func getSaveDataPath(isaacVersion IsaacVersion) string {
+	// Get the current username
+	var username string
+	if v, err := user.Current(); err != nil {
+		fatalError("Failed to get the current user: %v", err)
+	} else {
+		username = v.Name
+	}
+
+	// If the user has a custom "Documents" directory, Isaac ignores this and instead puts its files in the standard location
+	// Test to see if the log.txt exists at the "standard" location
+	// e.g. "C:\Users\Alice\Documents\My Games\Binding of Isaac Repentance\log.txt"
+	// (we must use "filepath" instead of "path" to avoid Windows bugs)
+	versionFolder := getVersionFolder(isaacVersion)
+	standardSaveDataPath := filepath.Join("C:\\", "Users", username, "Documents", "My Games", versionFolder)
+	standardLogPath := filepath.Join(standardSaveDataPath, "log.txt")
+	if fileExists(standardLogPath) {
+		return standardSaveDataPath
+	}
+
 	// From: https://superuser.com/questions/1132288/windows-command-prompt-get-relocated-users-documents-folder
 	cmd := exec.Command("powershell", "[Environment]::GetFolderPath('MyDocuments')")
 	var documentsDir string
@@ -109,28 +132,13 @@ func getSaveDataPath(isaacVersion IsaacVersion) string {
 		documentsDir = strings.TrimSpace(documentsDir)
 	}
 
-	// Must use "filepath" instead of "path" to avoid Windows bugs
-	myGamesPath := filepath.Join(documentsDir, "My Games")
-
-	var saveDataPath string
-	if isaacVersion == Rebirth {
-		saveDataPath = filepath.Join(myGamesPath, "Binding of Isaac Rebirth")
-	} else if isaacVersion == Afterbirth {
-		saveDataPath = filepath.Join(myGamesPath, "Binding of Isaac Afterbirth")
-	} else if isaacVersion == AfterbirthPlus {
-		saveDataPath = filepath.Join(myGamesPath, "Binding of Isaac Afterbirth+")
-	} else if isaacVersion == Repentance {
-		saveDataPath = filepath.Join(myGamesPath, "Binding of Isaac Repentance")
-	} else {
-		msg := fmt.Sprintf("Unknown Isaac version of: %d", isaacVersion)
-		fatal(msg)
+	saveDataPath := filepath.Join(documentsDir, "My Games", versionFolder)
+	if fileExists(saveDataPath) {
+		return saveDataPath
 	}
 
-	if !fileExists(saveDataPath) {
-		fatal("Failed to find your save data directory at \"" + saveDataPath + "\".")
-	}
-
-	return saveDataPath
+	fatal("Failed to find your save data directory at \"" + saveDataPath + "\".")
+	return ""
 }
 
 func disableSteamCloud(saveDataPath string) {
@@ -191,20 +199,7 @@ func installSaveFile(isaacVersion IsaacVersion, saveDataPath string, slot int) {
 }
 
 func unpackSaveFile(isaacVersion IsaacVersion) []byte {
-	var saveFileBase64 string
-	if isaacVersion == Rebirth {
-		saveFileBase64 = saveFileRebirthBase64
-	} else if isaacVersion == Afterbirth {
-		saveFileBase64 = saveFileAfterbirthBase64
-	} else if isaacVersion == AfterbirthPlus {
-		saveFileBase64 = saveFileAfterbirthPlusBase64
-	} else if isaacVersion == Repentance {
-		saveFileBase64 = saveFileRepentanceBase64
-	} else {
-		msg := fmt.Sprintf("Unknown Isaac version of: %d", isaacVersion)
-		fatal(msg)
-	}
-
+	saveFileBase64 := getVersionSaveFileBase64(isaacVersion)
 	safeFileBase64Trimmed := strings.TrimSpace(saveFileBase64)
 	if decoded, err := base64.StdEncoding.DecodeString(safeFileBase64Trimmed); err != nil {
 		fatalError("Failed to decode the save file: %v", err)

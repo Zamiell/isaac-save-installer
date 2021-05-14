@@ -6,6 +6,14 @@
     ],
     "words": [
         "dlcs",
-        "mitchellh"
+        "forbidigo",
+        "golint",
+        "govet",
+        "interfacer",
+        "mitchellh",
+        "nlreturn",
+        "outdent",
+        "scopelint",
+        "unexported"
     ]
 }
