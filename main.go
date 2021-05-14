@@ -103,13 +103,7 @@ func getUserIsaacVersion() IsaacVersion {
 }
 
 func getSaveDataPath(isaacVersion IsaacVersion) string {
-	// Get the current username
-	var username string
-	if v, err := user.Current(); err != nil {
-		fatalError("Failed to get the current user: %v", err)
-	} else {
-		username = v.Name
-	}
+	username := getUsername()
 
 	// If the user has a custom "Documents" directory, Isaac ignores this and instead puts its files in the standard location
 	// Test to see if the log.txt exists at the "standard" location
@@ -139,6 +133,22 @@ func getSaveDataPath(isaacVersion IsaacVersion) string {
 
 	fatal("Failed to find your save data directory at \"" + saveDataPath + "\".")
 	return ""
+}
+
+func getUsername() string {
+	var rawUsername string
+	if v, err := user.Current(); err != nil {
+		fatalError("Failed to get the current user: %v", err)
+	} else {
+		rawUsername = v.Username // e.g. alice-computer\Alice
+	}
+
+	usernameParts := strings.Split(rawUsername, "\\")
+	if len(usernameParts) == 0 {
+		return rawUsername
+	}
+
+	return usernameParts[len(usernameParts)-1]
 }
 
 func disableSteamCloud(saveDataPath string) {
