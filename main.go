@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -136,19 +135,7 @@ func getSaveDataPath(isaacVersion IsaacVersion) string {
 }
 
 func getUsername() string {
-	var rawUsername string
-	if v, err := user.Current(); err != nil {
-		fatalError("Failed to get the current user: %v", err)
-	} else {
-		rawUsername = v.Username // e.g. alice-computer\Alice
-	}
-
-	usernameParts := strings.Split(rawUsername, "\\")
-	if len(usernameParts) == 0 {
-		return rawUsername
-	}
-
-	return usernameParts[len(usernameParts)-1]
+	return os.Getenv("USERNAME")
 }
 
 func disableSteamCloud(saveDataPath string) {
