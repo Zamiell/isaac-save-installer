@@ -18,7 +18,7 @@ const (
 
 func main() {
 	printBanner()
-	checkIsIsaacOpen()
+	checkIfIsaacOpen()
 	getUserToAgreeToDeletingSaveFiles()
 	isaacVersion := getUserIsaacVersion()
 	saveDataPath := getSaveDataPath(isaacVersion)
@@ -37,7 +37,7 @@ func printBanner() {
 	fmt.Println()
 }
 
-func checkIsIsaacOpen() {
+func checkIfIsaacOpen() {
 	var processes []ps.Process
 	if v, err := ps.Processes(); err != nil {
 		fatalError("Failed to get the list of processes: %v", err)
