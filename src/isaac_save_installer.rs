@@ -13,6 +13,7 @@ use crate::{
     },
 };
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 const INPUT_EXPLANATION_MSG: &str = "[Type the number and press enter.]";
 const SELECTION_ERROR_MSG: &str = "That is not a valid selection.";
 
@@ -52,6 +53,7 @@ fn print_banner() {
     println!("|   The Binding of Isaac: Rebirth    |");
     println!("|             (and DLCs)             |");
     println!("| Fully Unlocked Save File Installer |");
+    println!("|               v{}               |", VERSION);
     println!("+------------------------------------+");
     println!();
     println!("If you have any problems with this installer, you can get help in the");
