@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.55"
-base64 = "0.13.0"
 dirs-next = "2.0.0"
 dont_disappear = "3.0.1"
 rust-ini = "0.18.0"

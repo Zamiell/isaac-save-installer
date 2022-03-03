@@ -1,24 +1,20 @@
+use crate::{
+    enums::IsaacVersion,
+    save_files::{
+        SAVE_FILE_AFTERBIRTH, SAVE_FILE_AFTERBIRTH_PLUS, SAVE_FILE_AFTERBIRTH_PLUS_BP5,
+        SAVE_FILE_REBIRTH, SAVE_FILE_REPENTANCE,
+    },
+};
 use anyhow::{Context, Result};
 use std::{fs::write, path::PathBuf};
-
-use crate::{
-    enums::IsaacVersion, save_file_afterbirth::SAVE_FILE_AFTERBIRTH,
-    save_file_afterbirth_plus::SAVE_FILE_AFTERBIRTH_PLUS,
-    save_file_afterbirth_plus_bp5::SAVE_FILE_AFTERBIRTH_PLUS_BP5,
-    save_file_rebirth::SAVE_FILE_REBIRTH, save_file_repentance::SAVE_FILE_REPENTANCE,
-};
 
 pub fn install(
     (save_file_path, _exists): &(PathBuf, bool),
     isaac_version: IsaacVersion,
 ) -> Result<()> {
-    let save_file_base_64 = get_save_file_base_64(isaac_version);
-    let save_file_data = base64::decode(save_file_base_64).context(format!(
-        "Failed to decode the base 64 for the save file of: {}",
-        isaac_version,
-    ))?;
+    let save_file_bytes = get_save_file_bytes(isaac_version);
 
-    write(save_file_path, save_file_data).context(format!(
+    write(save_file_path, save_file_bytes).context(format!(
         "Failed to write data to the following path: {}",
         save_file_path.display(),
     ))?;
@@ -31,14 +27,12 @@ pub fn install(
     Ok(())
 }
 
-fn get_save_file_base_64(isaac_version: IsaacVersion) -> String {
-    let save_file_base_64 = match isaac_version {
+fn get_save_file_bytes(isaac_version: IsaacVersion) -> &'static [u8] {
+    match isaac_version {
         IsaacVersion::Rebirth => SAVE_FILE_REBIRTH,
         IsaacVersion::Afterbirth => SAVE_FILE_AFTERBIRTH,
         IsaacVersion::AfterbirthPlus => SAVE_FILE_AFTERBIRTH_PLUS,
         IsaacVersion::AfterbirthPlusBP5 => SAVE_FILE_AFTERBIRTH_PLUS_BP5,
         IsaacVersion::Repentance => SAVE_FILE_REPENTANCE,
-    };
-
-    String::from(save_file_base_64)
+    }
 }

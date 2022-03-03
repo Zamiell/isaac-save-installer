@@ -6,11 +6,7 @@ mod enums;
 mod install;
 mod isaac_save_installer;
 mod save_data_path;
-mod save_file_afterbirth;
-mod save_file_afterbirth_plus;
-mod save_file_afterbirth_plus_bp5;
-mod save_file_rebirth;
-mod save_file_repentance;
+mod save_files;
 
 fn main() {
     match isaac_save_installer() {
