@@ -12,15 +12,13 @@
   // Automatically removing all trailing whitespace when saving a file
   "files.trimTrailingWhitespace": true,
 
-  // ------
-  // Golang
-  // ------
+  // ----
+  // Rust
+  // ----
 
-  // The default Golang linter is golint, which is only concerned with coding style
-  // GolangCI-Lint does a suite of different checks
-  "go.lintTool": "golangci-lint",
+  "rust-analyzer.checkOnSave.command": "clippy",
 
-  // This is recommended as per the GolangCI-Lint README file
-  // https://github.com/golangci/golangci-lint/blob/master/README.md
-  "go.lintFlags": ["--fast"],
+  "[rust]": {
+    "editor.formatOnSave": true,
+  },
 }

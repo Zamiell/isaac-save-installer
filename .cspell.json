@@ -1,19 +1,20 @@
 {
-    "version": "0.1",
-    "language": "en",
-    "dictionaries": [
-        "en_US"
-    ],
+    "version": "0.2",
     "words": [
-        "dlcs",
-        "forbidigo",
-        "golint",
-        "govet",
-        "interfacer",
-        "mitchellh",
-        "nlreturn",
-        "outdent",
-        "scopelint",
-        "unexported"
+        "camino",
+        "DLCs",
+        "dont",
+        "exitcode",
+        "hkcu",
+        "HKEY",
+        "pathdiv",
+        "persistentgamedata",
+        "predef",
+        "Repr",
+        "Speedrunning",
+        "subkey",
+        "sysinfo",
+        "userdata",
+        "winreg"
     ]
 }
