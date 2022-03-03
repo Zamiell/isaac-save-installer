@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use colored::Colorize;
 use std::{fs::write, path::PathBuf};
 
 use crate::{
@@ -24,13 +23,9 @@ pub fn install(
         save_file_path.display(),
     ))?;
 
-    let save_file_path_string = save_file_path.to_str().context(format!(
-        "Failed to convert the path to a string: {}",
-        save_file_path.display(),
-    ))?;
     println!(
-        "Successfully installed a fully-unlocked save file to:\n{}\n",
-        save_file_path_string.green(),
+        "Successfully installed a fully-unlocked save file to:\n{}",
+        save_file_path.display(),
     );
 
     Ok(())

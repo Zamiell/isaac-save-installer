@@ -1,5 +1,4 @@
 use anyhow::Error;
-use colored::*;
 use isaac_save_installer::isaac_save_installer;
 
 mod backup;
@@ -13,8 +12,6 @@ mod save_file_afterbirth_plus_bp5;
 mod save_file_rebirth;
 mod save_file_repentance;
 
-const ERROR_PREFIX: &str = "Error:";
-
 fn main() {
     match isaac_save_installer() {
         Ok(()) => quit(),
@@ -23,13 +20,12 @@ fn main() {
 }
 
 pub fn error(msg: &Error) -> ! {
-    let prefix = ERROR_PREFIX.red();
-    println!("{prefix} {msg}");
-    println!();
+    println!("Error: {}", msg);
     quit();
 }
 
 pub fn quit() -> ! {
+    println!();
     dont_disappear::enter_to_continue::default();
     std::process::exit(1);
 }

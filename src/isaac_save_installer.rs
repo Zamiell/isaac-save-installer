@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use anyhow::{bail, Context, Result};
-use colored::*;
 use std::{ops::RangeInclusive, path::PathBuf};
 use sysinfo::{System, SystemExt};
 use text_io::try_read;
@@ -57,7 +56,7 @@ fn print_banner() {
     println!();
     println!("If you have any problems with this installer, you can get help in the");
     println!("Isaac Speedrunning & Racing Discord server:");
-    println!("{}", "https://discord.com/invite/0Sokdog3miAGKovs".green());
+    println!("https://discord.com/invite/0Sokdog3miAGKovs");
     println!();
 }
 
@@ -129,8 +128,8 @@ fn print_save_files(existing_save_files: &[(PathBuf, bool)]) {
     println!("Your current save files are as follows:");
     for (i, (save_file_path, exists)) in existing_save_files.iter().enumerate() {
         let value = match exists {
-            true => save_file_path.to_str().unwrap_or("[unknown]").green(),
-            false => "[empty]".cyan(),
+            true => save_file_path.to_str().unwrap_or("[unknown]"),
+            false => "[empty]",
         };
         println!("{}) {}", i + 1, value);
     }

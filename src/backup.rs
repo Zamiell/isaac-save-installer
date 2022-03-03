@@ -1,5 +1,4 @@
 use anyhow::{bail, Context, Result};
-use colored::*;
 use std::{fs::copy, path::PathBuf};
 
 pub fn backup(
@@ -20,14 +19,10 @@ pub fn backup(
     ))?;
     let destination_path = dir_path.join(file_name);
 
-    let destination_path_string = destination_path.to_str().context(format!(
-        "Failed to convert the path to a string: {}",
-        destination_path.display(),
-    ))?;
     if destination_path.exists() {
         bail!(
             "You cannot backup that save file because the following file already exists in the directory next to this program:\n{}",
-            destination_path_string.green(),
+            destination_path.display(),
         )
     }
 
@@ -37,14 +32,10 @@ pub fn backup(
         destination_path.display(),
     ))?;
 
-    let existing_save_file_path_string = existing_save_file_path.to_str().context(format!(
-        "Failed to convert the path to a string: {}",
-        existing_save_file_path.display(),
-    ))?;
     println!(
-        "Successfully copied:\n{}\n-->\n{}\n",
-        existing_save_file_path_string.green(),
-        destination_path_string.green(),
+        "Successfully copied:\n{}\n-->\n{}",
+        existing_save_file_path.display(),
+        destination_path.display(),
     );
 
     Ok(())

@@ -1,6 +1,5 @@
 use crate::enums::IsaacVersion;
 use anyhow::{bail, Context, Result};
-use colored::*;
 use std::{
     fs::read_to_string,
     path::{Path, PathBuf},
@@ -97,13 +96,9 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<PathB
         return Ok(custom_path);
     }
 
-    let path_string = custom_path.to_str().context(format!(
-        "Failed to convert the path to a string: {}",
-        custom_path.display()
-    ))?;
     bail!(
         "Failed to find your documents save data directory at:\n{}\n\nDo you have this version of the game installed?",
-        path_string.green(),
+        custom_log_path.display(),
     )
 }
 
