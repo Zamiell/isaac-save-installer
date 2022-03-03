@@ -2,7 +2,10 @@ use anyhow::Error;
 use isaac_save_installer::isaac_save_installer;
 
 mod backup;
+mod change_steam_cloud;
+mod constants;
 mod enums;
+mod get_input;
 mod install;
 mod isaac_save_installer;
 mod save_data_path;

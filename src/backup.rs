@@ -42,9 +42,11 @@ pub fn backup(
 }
 
 fn get_dir_of_running_exe() -> Result<PathBuf> {
-    let mut exe_path =
+    let exe_path =
         std::env::current_exe().context("Failed to get the path of the current executable.")?;
-    exe_path.pop();
+    let dir_path = exe_path
+        .parent()
+        .context("Failed to get the parent direction of the current executable.")?;
 
-    Ok(exe_path)
+    Ok(dir_path.to_path_buf())
 }

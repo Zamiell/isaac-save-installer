@@ -1,39 +1,42 @@
 use crate::{
     backup::backup,
+    change_steam_cloud::change_steam_cloud,
     enums::{Activity, IsaacVersion},
+    get_input::{prompt_for_activity, prompt_for_isaac_version, prompt_for_save_file_slot},
     install::install,
     save_data_path::{
         get_documents_save_data_path, get_steam_cloud_enabled, get_steam_save_data_path,
     },
 };
 use anyhow::{bail, Context, Result};
-use std::{ops::RangeInclusive, path::PathBuf};
+use std::path::{Path, PathBuf};
 use sysinfo::{System, SystemExt};
-use text_io::try_read;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-const INPUT_EXPLANATION_MSG: &str = "[Type the number and press enter.]";
-const SELECTION_ERROR_MSG: &str = "That is not a valid selection.";
 
 pub fn isaac_save_installer() -> Result<()> {
     print_banner();
     check_if_isaac_open()?;
 
-    let isaac_version = prompt_user_for_isaac_version()?;
+    let isaac_version = prompt_for_isaac_version()?;
     let steam_save_data_path = get_steam_save_data_path(isaac_version)?;
     let documents_save_data_path = get_documents_save_data_path(isaac_version)?;
     let steam_cloud_enabled = get_steam_cloud_enabled(&documents_save_data_path)?;
     let save_data_path = match steam_cloud_enabled {
-        true => steam_save_data_path,
-        false => documents_save_data_path,
+        true => &steam_save_data_path,
+        false => &documents_save_data_path,
     };
 
     let existing_save_files =
         get_existing_save_files(isaac_version, save_data_path, steam_cloud_enabled);
     print_save_files(&existing_save_files);
 
-    let activity = prompt_user_for_activity()?;
-    let save_file_slot = prompt_user_for_save_file_slot(activity)?;
+    let activity = prompt_for_activity()?;
+    if activity == Activity::ChangeSteamCloud {
+        return change_steam_cloud(&documents_save_data_path, steam_cloud_enabled);
+    }
+
+    let save_file_slot = prompt_for_save_file_slot(activity)?;
     let save_file_index = save_file_slot - 1;
     let save_file = existing_save_files.get(save_file_index).context(format!(
         "Failed to get the save file at index: {}",
@@ -43,6 +46,7 @@ pub fn isaac_save_installer() -> Result<()> {
     match activity {
         Activity::Backup => backup(save_file, save_file_slot),
         Activity::Install => install(save_file, isaac_version),
+        _ => Ok(()),
     }
 }
 
@@ -70,27 +74,9 @@ fn check_if_isaac_open() -> Result<()> {
     }
 }
 
-fn prompt_user_for_isaac_version() -> Result<IsaacVersion> {
-    println!("Which game do you want to manage the save files for?");
-    println!("1) The Binding of Isaac: Rebirth");
-    println!("2) The Binding of Isaac: Afterbirth");
-    println!("3) The Binding of Isaac: Afterbirth+ (Vanilla through Booster Pack 4)");
-    println!("4) The Binding of Isaac: Afterbirth+ (Booster Pack 5)");
-    println!("5) The Binding of Isaac: Repentance");
-    println!("{}", INPUT_EXPLANATION_MSG);
-
-    let input: usize = try_read!("{}\n").context(SELECTION_ERROR_MSG)?;
-    println!();
-
-    let enum_value = input - 1; // e.g. 1 corresponds to element 0
-    let isaac_version = IsaacVersion::from_repr(enum_value).context(SELECTION_ERROR_MSG)?;
-
-    Ok(isaac_version)
-}
-
 fn get_existing_save_files(
     isaac_version: IsaacVersion,
-    save_data_path: PathBuf,
+    save_data_path: &Path,
     steam_cloud_enabled: bool,
 ) -> Vec<(PathBuf, bool)> {
     const NUM_SAVE_FILES: u32 = 3;
@@ -134,41 +120,4 @@ fn print_save_files(existing_save_files: &[(PathBuf, bool)]) {
         println!("{}) {}", i + 1, value);
     }
     println!();
-}
-
-fn prompt_user_for_activity() -> Result<Activity> {
-    println!("What do you want to do?");
-    println!("1) Backup an existing save file.");
-    println!("2) Install a new fully-unlocked file.");
-    println!("{}", INPUT_EXPLANATION_MSG);
-
-    let input: usize = try_read!("{}\n").context(SELECTION_ERROR_MSG)?;
-    println!();
-
-    let enum_value = input - 1; // e.g. 1 corresponds to element 0
-    let activity = Activity::from_repr(enum_value).context(SELECTION_ERROR_MSG)?;
-
-    Ok(activity)
-}
-
-fn prompt_user_for_save_file_slot(activity: Activity) -> Result<usize> {
-    let verb = match activity {
-        Activity::Backup => "backup",
-        Activity::Install => "install the fully-unlocked save file to",
-    };
-
-    println!("Which save file do you want to {}?", verb);
-    println!("1) Save slot 1");
-    println!("2) Save slot 2");
-    println!("3) Save slot 3");
-    println!("{}", INPUT_EXPLANATION_MSG);
-
-    let input: usize = try_read!("{}\n").context(SELECTION_ERROR_MSG)?;
-    println!();
-
-    if RangeInclusive::new(1, 3).contains(&input) {
-        return Ok(input);
-    }
-
-    bail!(SELECTION_ERROR_MSG)
 }

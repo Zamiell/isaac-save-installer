@@ -1,4 +1,7 @@
-use crate::enums::IsaacVersion;
+use crate::{
+    constants::{OPTIONS_INI, OPTIONS_SECTION_NAME, STEAM_CLOUD_NAME},
+    enums::IsaacVersion,
+};
 use anyhow::{bail, Context, Result};
 use std::{
     fs::read_to_string,
@@ -119,29 +122,8 @@ fn get_version_directory_name(isaac_version: IsaacVersion) -> String {
     String::from(directory_name)
 }
 
-pub fn get_steam_cloud_enabled(save_data_path: &Path) -> Result<bool> {
-    const OPTIONS_INI: &str = "options.ini";
-    const OPTIONS_SECTION_NAME: &str = "Options";
-    const STEAM_CLOUD_NAME: &str = "SteamCloud";
-
-    let options_ini_path = save_data_path.join(OPTIONS_INI);
-    if !&options_ini_path.exists() {
-        bail!(
-            "Failed to find your \"{}\" file at \": {}",
-            OPTIONS_INI,
-            options_ini_path.display(),
-        );
-    }
-
-    let options_ini_string = read_to_string(&options_ini_path).context(format!(
-        "Failed to read the file: {}",
-        options_ini_path.display()
-    ))?;
-
-    let options_ini = ini::Ini::load_from_str(&options_ini_string).context(format!(
-        "Failed to parse the file: {}",
-        options_ini_path.display()
-    ))?;
+pub fn get_steam_cloud_enabled(documents_save_data_path: &Path) -> Result<bool> {
+    let options_ini = get_options_ini(documents_save_data_path)?;
 
     let options_section = options_ini
         .section(Some(OPTIONS_SECTION_NAME))
@@ -164,4 +146,59 @@ pub fn get_steam_cloud_enabled(save_data_path: &Path) -> Result<bool> {
             steam_cloud_string,
         ),
     }
+}
+
+fn get_options_ini(documents_save_data_path: &Path) -> Result<ini::Ini> {
+    let options_ini_path = get_options_ini_path(documents_save_data_path)?;
+
+    let options_ini_string = read_to_string(&options_ini_path).context(format!(
+        "Failed to read the file: {}",
+        options_ini_path.display()
+    ))?;
+
+    let options_ini = ini::Ini::load_from_str(&options_ini_string).context(format!(
+        "Failed to parse the file: {}",
+        options_ini_path.display()
+    ))?;
+
+    Ok(options_ini)
+}
+
+fn get_options_ini_path(documents_save_data_path: &Path) -> Result<PathBuf> {
+    let options_ini_path = documents_save_data_path.join(OPTIONS_INI);
+
+    if !options_ini_path.exists() {
+        bail!(
+            "Failed to find your \"{}\" file at \": {}",
+            OPTIONS_INI,
+            options_ini_path.display(),
+        );
+    }
+
+    Ok(options_ini_path)
+}
+
+pub fn toggle_steam_cloud_enabled(
+    documents_save_data_path: &Path,
+    previously_enabled: bool,
+) -> Result<()> {
+    let mut options_ini = get_options_ini(documents_save_data_path)?;
+    let mut options_section = options_ini.with_section(Some(OPTIONS_SECTION_NAME));
+    let toggled_setting = match previously_enabled {
+        true => "0",
+        false => "1",
+    };
+    options_section.set(STEAM_CLOUD_NAME, toggled_setting);
+
+    let options_ini_path = get_options_ini_path(documents_save_data_path)?;
+    options_ini.write_to_file(&options_ini_path)?;
+
+    println!(
+        "Successfully set the \"{}\" value to \"{}\" in the following file: {}",
+        STEAM_CLOUD_NAME,
+        toggled_setting,
+        options_ini_path.display(),
+    );
+
+    Ok(())
 }
