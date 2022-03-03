@@ -2,6 +2,7 @@
     "version": "0.2",
     "words": [
         "camino",
+        "clippy",
         "DLCs",
         "dont",
         "exitcode",
@@ -11,9 +12,13 @@
         "persistentgamedata",
         "predef",
         "Repr",
+        "rustfmt",
+        "rustup",
+        "sarisia",
         "Speedrunning",
         "subkey",
         "sysinfo",
+        "technote",
         "userdata",
         "winreg"
     ]

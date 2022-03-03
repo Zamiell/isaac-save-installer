@@ -1,4 +1,4 @@
-use crate::{enums::IsaacVersion, utils::get_username};
+use crate::enums::IsaacVersion;
 use anyhow::{bail, Context, Result};
 use colored::*;
 use std::{
@@ -105,6 +105,10 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<PathB
         "Failed to find your documents save data directory at:\n{}\n\nDo you have this version of the game installed?",
         path_string.green(),
     )
+}
+
+fn get_username() -> String {
+    whoami::username()
 }
 
 fn get_version_directory_name(isaac_version: IsaacVersion) -> String {
