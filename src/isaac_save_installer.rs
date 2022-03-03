@@ -1,9 +1,3 @@
-use anyhow::{bail, Context, Result};
-use colored::*;
-use std::{ops::RangeInclusive, path::PathBuf};
-use sysinfo::{System, SystemExt};
-use text_io::try_read;
-
 use crate::{
     backup::backup,
     enums::{Activity, IsaacVersion},
@@ -12,6 +6,11 @@ use crate::{
         get_documents_save_data_path, get_steam_cloud_enabled, get_steam_save_data_path,
     },
 };
+use anyhow::{bail, Context, Result};
+use colored::*;
+use std::{ops::RangeInclusive, path::PathBuf};
+use sysinfo::{System, SystemExt};
+use text_io::try_read;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const INPUT_EXPLANATION_MSG: &str = "[Type the number and press enter.]";

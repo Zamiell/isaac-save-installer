@@ -42,7 +42,7 @@ pub fn backup(
         existing_save_file_path.display(),
     ))?;
     println!(
-        "Successfully copied:\n{}\n-->\n{}",
+        "Successfully copied:\n{}\n-->\n{}\n",
         existing_save_file_path_string.green(),
         destination_path_string.green(),
     );

@@ -29,7 +29,7 @@ pub fn install(
         save_file_path.display(),
     ))?;
     println!(
-        "Successfully installed a fully-unlocked save file to:\n{}",
+        "Successfully installed a fully-unlocked save file to:\n{}\n",
         save_file_path_string.green(),
     );
 
