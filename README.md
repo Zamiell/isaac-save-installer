@@ -12,5 +12,5 @@ Download the latest exe file from [the releases page](https://github.com/Zamiell
 
 ## Build
 
-1) Install [Go](https://golang.org/).
-2) Run `go build` in the directory for this repository.
+1) Install [Rust](https://www.rust-lang.org/).
+2) Run `./build.sh` in the directory for this repository.

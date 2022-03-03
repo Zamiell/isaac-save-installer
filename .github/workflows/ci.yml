@@ -20,6 +20,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
+          args: --target x86_64-pc-windows-msvc
 
       - name: Install rustfmt
         run: rustup component add rustfmt
