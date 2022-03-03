@@ -9,8 +9,3 @@ This is a program that automatically installs a fully-unlocked save file for *[T
 Download the latest exe file from [the releases page](https://github.com/Zamiell/isaac-save-installer/releases).
 
 <br />
-
-## Build
-
-1) Install [Rust](https://www.rust-lang.org/).
-2) Run `./build.sh` in the directory for this repository.
