@@ -6,22 +6,24 @@ use crate::{
     },
 };
 use anyhow::{Context, Result};
-use std::{fs::write, path::PathBuf};
+use camino::Utf8PathBuf;
+use colored::Colorize;
+use std::fs::write;
 
 pub fn install(
-    (save_file_path, _exists): &(PathBuf, bool),
+    (save_file_path, _exists): &(Utf8PathBuf, bool),
     isaac_version: IsaacVersion,
 ) -> Result<()> {
     let save_file_bytes = get_save_file_bytes(isaac_version);
 
     write(save_file_path, save_file_bytes).context(format!(
-        "Failed to write data to the following path: {}",
-        save_file_path.display(),
+        "Failed to write data to the following path:\n{}",
+        save_file_path.to_string().green(),
     ))?;
 
     println!(
         "Successfully installed a fully-unlocked save file to:\n{}",
-        save_file_path.display(),
+        save_file_path.to_string().green(),
     );
 
     Ok(())

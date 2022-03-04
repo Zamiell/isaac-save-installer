@@ -1,4 +1,5 @@
 use anyhow::Error;
+use colored::*;
 use isaac_save_installer::isaac_save_installer;
 
 mod backup;
@@ -19,7 +20,7 @@ fn main() {
 }
 
 pub fn error(msg: &Error) -> ! {
-    println!("Error: {}", msg);
+    println!("{} {}", "Error:".red(), msg);
     quit();
 }
 

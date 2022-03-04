@@ -3,13 +3,12 @@ use crate::{
     enums::IsaacVersion,
 };
 use anyhow::{bail, Context, Result};
-use std::{
-    fs::read_to_string,
-    path::{Path, PathBuf},
-};
+use camino::{Utf8Path, Utf8PathBuf};
+use colored::Colorize;
+use std::fs::read_to_string;
 use winreg::enums::*;
 
-pub fn get_steam_save_data_path(_isaac_version: IsaacVersion) -> Result<PathBuf> {
+pub fn get_steam_save_data_path() -> Result<Utf8PathBuf> {
     const ISAAC_STEAM_ID: u32 = 250900;
 
     let steam_installation_path = get_steam_installation_path()?;
@@ -24,7 +23,7 @@ pub fn get_steam_save_data_path(_isaac_version: IsaacVersion) -> Result<PathBuf>
     Ok(steam_save_data_path)
 }
 
-fn get_steam_installation_path() -> Result<PathBuf> {
+fn get_steam_installation_path() -> Result<Utf8PathBuf> {
     const STEAM_REGISTRY_PATH: &str = "Software\\Valve\\Steam";
     const STEAM_PATH_KEY_VALUE: &str = "SteamPath";
 
@@ -37,8 +36,9 @@ fn get_steam_installation_path() -> Result<PathBuf> {
         "Failed to get the \"{}\" value from the Windows registry key: {}",
         STEAM_PATH_KEY_VALUE, STEAM_REGISTRY_PATH
     ))?;
+    let steam_path = Utf8PathBuf::from(steam_path_string);
 
-    Ok(PathBuf::from(steam_path_string))
+    Ok(steam_path)
 }
 
 fn get_steam_active_user_id() -> Result<u32> {
@@ -65,7 +65,7 @@ fn get_steam_active_user_id() -> Result<u32> {
     }
 }
 
-pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<PathBuf> {
+pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<Utf8PathBuf> {
     const LOG_TXT: &str = "log.txt";
 
     let username = get_username();
@@ -75,7 +75,7 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<PathB
     // in the standard location
     // Test to see if the "log.txt" file exists at the "standard" location
     // e.g. "C:\Users\Alice\Documents\My Games\Binding of Isaac Repentance\log.txt"
-    let standard_path = PathBuf::from(r"C:\")
+    let standard_path = Utf8PathBuf::from(r"C:\")
         .join("Users")
         .join(username)
         .join("Documents")
@@ -91,7 +91,15 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<PathB
     // The "dirs_next" library queries the Windows API to determine this
     let documents_path = dirs_next::document_dir()
         .context("Unable to find the path to your \"Documents\" directory.")?;
-    let custom_path = documents_path
+    let documents_path_utf8_result = Utf8PathBuf::from_path_buf(documents_path.clone());
+    let documents_path_utf8 = match documents_path_utf8_result {
+        Ok(path_buf) => path_buf,
+        _ => bail!(format!(
+            "Failed to convert the following path to UTF8:\n{}",
+            documents_path.display(),
+        )),
+    };
+    let custom_path = documents_path_utf8
         .join("My Games")
         .join(&version_directory_name);
     let custom_log_path = custom_path.join(LOG_TXT);
@@ -100,8 +108,8 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<PathB
     }
 
     bail!(
-        "Failed to find your documents save data directory at:\n{}\n\nDo you have this version of the game installed?",
-        custom_log_path.display(),
+        "Failed to find your documents save data directory at:\n{}\n\nDo you have the selected version of the game installed?",
+        custom_log_path.to_string().green(),
     )
 }
 
@@ -122,7 +130,7 @@ fn get_version_directory_name(isaac_version: IsaacVersion) -> String {
     String::from(directory_name)
 }
 
-pub fn get_steam_cloud_enabled(documents_save_data_path: &Path) -> Result<bool> {
+pub fn get_steam_cloud_enabled(documents_save_data_path: &Utf8Path) -> Result<bool> {
     let options_ini = get_options_ini(documents_save_data_path)?;
 
     let options_section = options_ini
@@ -148,30 +156,30 @@ pub fn get_steam_cloud_enabled(documents_save_data_path: &Path) -> Result<bool> 
     }
 }
 
-fn get_options_ini(documents_save_data_path: &Path) -> Result<ini::Ini> {
+fn get_options_ini(documents_save_data_path: &Utf8Path) -> Result<ini::Ini> {
     let options_ini_path = get_options_ini_path(documents_save_data_path)?;
 
     let options_ini_string = read_to_string(&options_ini_path).context(format!(
-        "Failed to read the file: {}",
-        options_ini_path.display()
+        "Failed to read the file:\n{}",
+        options_ini_path.to_string().green(),
     ))?;
 
     let options_ini = ini::Ini::load_from_str(&options_ini_string).context(format!(
-        "Failed to parse the file: {}",
-        options_ini_path.display()
+        "Failed to parse the file:\n{}",
+        options_ini_path.to_string().green(),
     ))?;
 
     Ok(options_ini)
 }
 
-fn get_options_ini_path(documents_save_data_path: &Path) -> Result<PathBuf> {
+fn get_options_ini_path(documents_save_data_path: &Utf8Path) -> Result<Utf8PathBuf> {
     let options_ini_path = documents_save_data_path.join(OPTIONS_INI);
 
     if !options_ini_path.exists() {
         bail!(
-            "Failed to find your \"{}\" file at \": {}",
+            "Failed to find your \"{}\" file at \":\n{}",
             OPTIONS_INI,
-            options_ini_path.display(),
+            options_ini_path.to_string().green(),
         );
     }
 
@@ -179,7 +187,7 @@ fn get_options_ini_path(documents_save_data_path: &Path) -> Result<PathBuf> {
 }
 
 pub fn toggle_steam_cloud_enabled(
-    documents_save_data_path: &Path,
+    documents_save_data_path: &Utf8Path,
     previously_enabled: bool,
 ) -> Result<()> {
     let mut options_ini = get_options_ini(documents_save_data_path)?;
@@ -194,10 +202,10 @@ pub fn toggle_steam_cloud_enabled(
     options_ini.write_to_file(&options_ini_path)?;
 
     println!(
-        "Successfully set the \"{}\" value to \"{}\" in the following file: {}",
+        "Successfully set the \"{}\" value to \"{}\" in the following file:\n{}",
         STEAM_CLOUD_NAME,
         toggled_setting,
-        options_ini_path.display(),
+        options_ini_path.to_string().green(),
     );
 
     Ok(())

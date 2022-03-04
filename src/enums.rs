@@ -1,6 +1,6 @@
 use strum_macros::{Display, FromRepr};
 
-#[derive(Clone, Copy, Debug, Display, FromRepr)]
+#[derive(Clone, Copy, Display, FromRepr)]
 pub enum IsaacVersion {
     Rebirth,
     Afterbirth,

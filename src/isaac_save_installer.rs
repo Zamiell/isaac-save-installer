@@ -9,27 +9,30 @@ use crate::{
     },
 };
 use anyhow::{bail, Context, Result};
-use std::path::{Path, PathBuf};
+use camino::{Utf8Path, Utf8PathBuf};
+use colored::control::set_virtual_terminal;
+use colored::*;
 use sysinfo::{System, SystemExt};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub fn isaac_save_installer() -> Result<()> {
+    set_virtual_terminal(true).expect("Failed to set the virtual terminal setting.");
     print_banner();
     check_if_isaac_open()?;
 
     let isaac_version = prompt_for_isaac_version()?;
-    let steam_save_data_path = get_steam_save_data_path(isaac_version)?;
+    let steam_save_data_path = get_steam_save_data_path()?;
     let documents_save_data_path = get_documents_save_data_path(isaac_version)?;
     let steam_cloud_enabled = get_steam_cloud_enabled(&documents_save_data_path)?;
     let save_data_path = match steam_cloud_enabled {
-        true => &steam_save_data_path,
-        false => &documents_save_data_path,
+        true => steam_save_data_path,
+        false => documents_save_data_path.clone(),
     };
 
     let existing_save_files =
-        get_existing_save_files(isaac_version, save_data_path, steam_cloud_enabled);
-    print_save_files(&existing_save_files);
+        get_existing_save_files(isaac_version, &save_data_path, steam_cloud_enabled);
+    print_save_files(&existing_save_files)?;
 
     let activity = prompt_for_activity()?;
     if activity == Activity::ChangeSteamCloud {
@@ -60,7 +63,7 @@ fn print_banner() {
     println!();
     println!("If you have any problems with this installer, you can get help in the");
     println!("Isaac Speedrunning & Racing Discord server:");
-    println!("https://discord.com/invite/0Sokdog3miAGKovs");
+    println!("{}", "https://discord.com/invite/0Sokdog3miAGKovs".green());
     println!();
 }
 
@@ -76,14 +79,14 @@ fn check_if_isaac_open() -> Result<()> {
 
 fn get_existing_save_files(
     isaac_version: IsaacVersion,
-    save_data_path: &Path,
+    save_data_path: &Utf8Path,
     steam_cloud_enabled: bool,
-) -> Vec<(PathBuf, bool)> {
+) -> Vec<(Utf8PathBuf, bool)> {
     const NUM_SAVE_FILES: u32 = 3;
 
     let prefix = get_file_name_prefix(isaac_version, steam_cloud_enabled);
 
-    let mut save_file_paths: Vec<(PathBuf, bool)> = Vec::new();
+    let mut save_file_paths: Vec<(Utf8PathBuf, bool)> = Vec::new();
     for i in 0..NUM_SAVE_FILES {
         let file_name = format!("{}persistentgamedata{}.dat", prefix, i + 1);
         let save_file_path = save_data_path.join(file_name);
@@ -110,14 +113,16 @@ fn get_file_name_prefix(isaac_version: IsaacVersion, steam_cloud_enabled: bool) 
     String::from(prefix)
 }
 
-fn print_save_files(existing_save_files: &[(PathBuf, bool)]) {
+fn print_save_files(existing_save_files: &[(Utf8PathBuf, bool)]) -> Result<()> {
     println!("Your current save files are as follows:");
     for (i, (save_file_path, exists)) in existing_save_files.iter().enumerate() {
         let value = match exists {
-            true => save_file_path.to_str().unwrap_or("[unknown]"),
-            false => "[empty]",
+            true => save_file_path.to_string().green(),
+            false => "[empty]".cyan(),
         };
         println!("{}) {}", i + 1, value);
     }
     println!();
+
+    Ok(())
 }
