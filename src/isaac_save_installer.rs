@@ -49,7 +49,7 @@ pub fn isaac_save_installer() -> Result<()> {
     match activity {
         Activity::Backup => backup(save_file, save_file_slot),
         Activity::Install => install(save_file, isaac_version),
-        _ => Ok(()),
+        Activity::ChangeSteamCloud => unreachable!(),
     }
 }
 
