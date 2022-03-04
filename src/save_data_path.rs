@@ -91,12 +91,12 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<Utf8P
     // The "dirs_next" library queries the Windows API to determine this
     let documents_path = dirs_next::document_dir()
         .context("Unable to find the path to your \"Documents\" directory.")?;
-    let documents_path_utf8_result = Utf8PathBuf::from_path_buf(documents_path.clone());
+    let documents_path_utf8_result = Utf8PathBuf::from_path_buf(documents_path);
     let documents_path_utf8 = match documents_path_utf8_result {
         Ok(path_buf) => path_buf,
-        _ => bail!(format!(
-            "Failed to convert the following path to UTF8:\n{}",
-            documents_path.display(),
+        Err(path_buf) => bail!(format!(
+            "Failed to convert the following path to UTF8:\n{:?}",
+            path_buf,
         )),
     };
     let custom_path = documents_path_utf8

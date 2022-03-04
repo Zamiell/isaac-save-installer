@@ -46,12 +46,12 @@ pub fn backup(
 fn get_dir_of_running_exe() -> Result<Utf8PathBuf> {
     let exe_path =
         std::env::current_exe().context("Failed to get the path of the current executable.")?;
-    let exe_path_utf8_result = Utf8PathBuf::from_path_buf(exe_path.clone());
+    let exe_path_utf8_result = Utf8PathBuf::from_path_buf(exe_path);
     let exe_path_utf8 = match exe_path_utf8_result {
         Ok(path_buf) => path_buf,
-        _ => bail!(format!(
-            "Failed to convert the following path to UTF8:\n{}",
-            exe_path.display(),
+        Err(path_buf) => bail!(format!(
+            "Failed to convert the following path to UTF8:\n{:?}",
+            path_buf,
         )),
     };
     let dir_path = exe_path_utf8

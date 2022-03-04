@@ -18,6 +18,19 @@
 
   "rust-analyzer.checkOnSave.command": "clippy",
 
+  // Running "clippy --fix" requires using the "overrideCommand" directive
+  // https://stackoverflow.com/questions/71345592/how-do-i-automatically-run-cargo-fix-on-save-in-vscode
+  /*
+  "rust-analyzer.checkOnSave.overrideCommand": [
+    "cargo",
+    "clippy",
+    "--fix",
+    "--workspace",
+    "--message-format=json",
+    "--all-targets"
+  ],
+  */
+
   "[rust]": {
     "editor.formatOnSave": true,
   },

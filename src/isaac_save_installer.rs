@@ -25,13 +25,13 @@ pub fn isaac_save_installer() -> Result<()> {
     let steam_save_data_path = get_steam_save_data_path()?;
     let documents_save_data_path = get_documents_save_data_path(isaac_version)?;
     let steam_cloud_enabled = get_steam_cloud_enabled(&documents_save_data_path)?;
-    let save_data_path = match steam_cloud_enabled {
-        true => steam_save_data_path,
-        false => documents_save_data_path.clone(),
+    let save_data_path: &Utf8Path = match steam_cloud_enabled {
+        true => &steam_save_data_path,
+        false => &documents_save_data_path,
     };
 
     let existing_save_files =
-        get_existing_save_files(isaac_version, &save_data_path, steam_cloud_enabled);
+        get_existing_save_files(isaac_version, save_data_path, steam_cloud_enabled);
     print_save_files(&existing_save_files)?;
 
     let activity = prompt_for_activity()?;
