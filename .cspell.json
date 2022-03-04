@@ -20,7 +20,6 @@
         "subkey",
         "sysinfo",
         "technote",
-        "termcolor",
         "userdata",
         "winreg"
     ]
