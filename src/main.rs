@@ -1,5 +1,7 @@
 use anyhow::Error;
+
 use colored::*;
+use get_input::prompt_for_user_to_hit_enter;
 use isaac_save_installer::isaac_save_installer;
 
 mod backup;
@@ -14,18 +16,23 @@ mod save_files;
 
 fn main() {
     match isaac_save_installer() {
-        Ok(()) => quit(),
+        Ok(()) => quit(false),
         Err(err) => error(&err),
     }
 }
 
 pub fn error(msg: &Error) -> ! {
     println!("{} {}", "Error:".red(), msg);
-    quit();
+    quit(true);
 }
 
-pub fn quit() -> ! {
-    println!();
-    dont_disappear::enter_to_continue::default();
-    std::process::exit(1);
+pub fn quit(errored: bool) -> ! {
+    println!("You can now close this window.");
+    prompt_for_user_to_hit_enter().ok();
+
+    let exit_code = match errored {
+        true => 1,
+        false => 0,
+    };
+    std::process::exit(exit_code);
 }

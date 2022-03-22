@@ -10,7 +10,7 @@ const SELECTION_ERROR_MSG: &str = "That is not a valid selection.";
 const INPUT_NUMBER_EXPLANATION_MSG: &str = "[Type the number and press enter.]";
 const INPUT_BOOL_EXPLANATION_MSG: &str = "[Type y or n and press enter.]";
 
-fn get_user_input_string() -> Result<String> {
+pub fn get_user_input_string() -> Result<String> {
     let input: String = try_read!("{}").context(SELECTION_ERROR_MSG)?;
     println!();
 
@@ -106,4 +106,9 @@ pub fn prompt_for_save_file_slot(activity: Activity) -> Result<usize> {
     }
 
     bail!(SELECTION_ERROR_MSG)
+}
+
+pub fn prompt_for_user_to_hit_enter() -> Result<()> {
+    get_user_input_string()?;
+    Ok(())
 }

@@ -12,6 +12,7 @@ use anyhow::{bail, Context, Result};
 use camino::{Utf8Path, Utf8PathBuf};
 use colored::control::set_virtual_terminal;
 use colored::*;
+
 use sysinfo::{System, SystemExt};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
