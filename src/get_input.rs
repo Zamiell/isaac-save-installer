@@ -10,7 +10,7 @@ const SELECTION_ERROR_MSG: &str = "That is not a valid selection.";
 const INPUT_NUMBER_EXPLANATION_MSG: &str = "[Type the number and press enter.]";
 const INPUT_BOOL_EXPLANATION_MSG: &str = "[Type y or n and press enter.]";
 
-pub fn get_user_input_string() -> Result<String> {
+fn get_user_input_string() -> Result<String> {
     let input: String = try_read!("{}").context(SELECTION_ERROR_MSG)?;
     println!();
 
