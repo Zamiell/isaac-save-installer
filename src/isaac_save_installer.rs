@@ -1,6 +1,7 @@
 use crate::{
     backup::backup,
     change_steam_cloud::change_steam_cloud,
+    delete::{delete},
     enums::{Activity, IsaacVersion},
     get_input::{prompt_for_activity, prompt_for_isaac_version, prompt_for_save_file_slot},
     install::install,
@@ -47,8 +48,9 @@ pub fn isaac_save_installer() -> Result<()> {
     ))?;
 
     match activity {
-        Activity::Backup => backup(save_file, save_file_slot),
         Activity::Install => install(save_file, isaac_version),
+        Activity::Backup => backup(save_file, save_file_slot),
+        Activity::Delete => delete(save_file, save_file_slot),
         Activity::ChangeSteamCloud => unreachable!(),
     }
 }

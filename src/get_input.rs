@@ -75,9 +75,10 @@ pub fn confirm_toggle_steam_cloud(steam_cloud_enabled: bool) -> Result<bool> {
 
 pub fn prompt_for_activity() -> Result<Activity> {
     println!("What do you want to do?");
-    println!("1) Backup an existing save file.");
-    println!("2) Install a new fully-unlocked file.");
-    println!("3) Change your \"SteamCloud\" setting in the \"options.ini\" file.");
+    println!("1) Install a new fully-unlocked file.");
+    println!("2) Backup an existing save file.");
+    println!("3) Delete an existing save file.");
+    println!("4) Change your \"SteamCloud\" setting in the \"options.ini\" file.");
     println!("{}", INPUT_NUMBER_EXPLANATION_MSG);
 
     let input = get_user_input_number()?;

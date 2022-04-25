@@ -11,7 +11,8 @@ pub enum IsaacVersion {
 
 #[derive(Clone, Copy, FromRepr, PartialEq)]
 pub enum Activity {
-    Backup,
     Install,
+    Backup,
+    Delete,
     ChangeSteamCloud,
 }
