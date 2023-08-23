@@ -22,7 +22,7 @@ pub fn delete(
         existing_save_file_path.to_string().green(),
     ))?;
 
-    remove_file(&existing_save_file_path).context(format!(
+    remove_file(existing_save_file_path).context(format!(
         "Failed to delete:\n{}",
         existing_save_file_path.to_string().green(),
     ))?;

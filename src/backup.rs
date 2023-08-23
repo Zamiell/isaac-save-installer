@@ -30,7 +30,7 @@ pub fn backup(
         )
     }
 
-    copy(&existing_save_file_path, &destination_path).context(format!(
+    copy(existing_save_file_path, &destination_path).context(format!(
         "Failed to copy:\n{}\n-->\n{}",
         existing_save_file_path.to_string().green(),
         destination_path.to_string().green(),

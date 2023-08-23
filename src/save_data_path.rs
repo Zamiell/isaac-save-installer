@@ -72,9 +72,8 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<Utf8P
     let version_directory_name = get_version_directory_name(isaac_version);
 
     // If the user has a custom "Documents" directory, Isaac ignores this and instead puts its files
-    // in the standard location
-    // Test to see if the "log.txt" file exists at the "standard" location
-    // e.g. "C:\Users\Alice\Documents\My Games\Binding of Isaac Repentance\log.txt"
+    // in the standard location. Test to see if the "log.txt" file exists at the "standard"
+    // location. (e.g. "C:\Users\Alice\Documents\My Games\Binding of Isaac Repentance\log.txt")
     let standard_path = Utf8PathBuf::from(r"C:\")
         .join("Users")
         .join(username)
@@ -87,8 +86,8 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<Utf8P
     }
 
     // The standard documents location does not seem to exist, so the user might have a "Documents"
-    // directory that is in a custom location
-    // The "dirs_next" library queries the Windows API to determine this
+    // directory that is in a custom location. The "dirs_next" library queries the Windows API to
+    // determine this.
     let documents_path = dirs_next::document_dir()
         .context("Unable to find the path to your \"Documents\" directory.")?;
     let documents_path_utf8_result = Utf8PathBuf::from_path_buf(documents_path);
