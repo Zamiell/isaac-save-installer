@@ -8,6 +8,12 @@ use colored::Colorize;
 use std::fs::read_to_string;
 use winreg::enums::*;
 
+const LOG_TXT: &str = "log.txt";
+const STEAM_REGISTRY_PATH: &str = "Software\\Valve\\Steam";
+const STEAM_PATH_KEY_VALUE: &str = "SteamPath";
+const ACTIVE_PROCESS_REGISTRY_PATH: &str = "Software\\Valve\\Steam\\ActiveProcess";
+const ACTIVE_USER_KEY_VALUE: &str = "ActiveUser";
+
 pub fn get_steam_save_data_path() -> Result<Utf8PathBuf> {
     const ISAAC_STEAM_ID: u32 = 250900;
 
@@ -24,9 +30,6 @@ pub fn get_steam_save_data_path() -> Result<Utf8PathBuf> {
 }
 
 fn get_steam_installation_path() -> Result<Utf8PathBuf> {
-    const STEAM_REGISTRY_PATH: &str = "Software\\Valve\\Steam";
-    const STEAM_PATH_KEY_VALUE: &str = "SteamPath";
-
     let hkcu = winreg::RegKey::predef(HKEY_CURRENT_USER);
     let steam_key = hkcu.open_subkey(STEAM_REGISTRY_PATH).context(format!(
         "Failed to get the Windows registry key: {}",
@@ -42,9 +45,6 @@ fn get_steam_installation_path() -> Result<Utf8PathBuf> {
 }
 
 fn get_steam_active_user_id() -> Result<u32> {
-    const ACTIVE_PROCESS_REGISTRY_PATH: &str = "Software\\Valve\\Steam\\ActiveProcess";
-    const ACTIVE_USER_KEY_VALUE: &str = "ActiveUser";
-
     let hkcu = winreg::RegKey::predef(HKEY_CURRENT_USER);
     let active_process_key = hkcu
         .open_subkey(ACTIVE_PROCESS_REGISTRY_PATH)
@@ -66,23 +66,25 @@ fn get_steam_active_user_id() -> Result<u32> {
 }
 
 pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<Utf8PathBuf> {
-    const LOG_TXT: &str = "log.txt";
-
     let username = get_username();
     let version_directory_name = get_version_directory_name(isaac_version);
 
     // If the user has a custom "Documents" directory, Isaac ignores this and instead puts its files
     // in the standard location. Test to see if the "log.txt" file exists at the "standard"
     // location. (e.g. "C:\Users\Alice\Documents\My Games\Binding of Isaac Repentance\log.txt")
-    let standard_path = Utf8PathBuf::from(r"C:\")
-        .join("Users")
-        .join(username)
-        .join("Documents")
-        .join("My Games")
-        .join(&version_directory_name);
-    let standard_log_path = standard_path.join(LOG_TXT);
-    if standard_log_path.exists() {
-        return Ok(standard_path);
+    if let Some(path) =
+        get_documents_save_data_path_standard(&username, &version_directory_name, 'C')
+    {
+        return Ok(path);
+    }
+
+    // It might be on another drive, so try search through every drive letter.
+    for drive_letter in 'A'..='Z' {
+        if let Some(path) =
+            get_documents_save_data_path_standard(&username, &version_directory_name, drive_letter)
+        {
+            return Ok(path);
+        }
     }
 
     // The standard documents location does not seem to exist, so the user might have a "Documents"
@@ -106,10 +108,68 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<Utf8P
         return Ok(custom_path);
     }
 
+    // As a last resort, try looking in the "OneDrive" directory. (e.g.
+    // "C:\Users\Alice\OneDrive\Documents\My Games\Binding of Isaac Repentance\log.txt")
+    if let Some(path) =
+        get_documents_save_data_path_one_drive(&username, &version_directory_name, 'C')
+    {
+        return Ok(path);
+    }
+
+    // It might be on another drive, so try search through every drive letter.
+    for drive_letter in 'A'..='Z' {
+        if let Some(path) =
+            get_documents_save_data_path_one_drive(&username, &version_directory_name, drive_letter)
+        {
+            return Ok(path);
+        }
+    }
+
     bail!(
-        "Failed to find your documents save data directory at:\n{}\n\nDo you have the selected version of the game installed?",
+        "Failed to find your documents save data directory at:\n{}\n\nDo you have the selected version of the game installed? If you do, try opening the game, closing the game, and then retrying (so that the \"log.txt\" file is created).",
         custom_log_path.to_string().green(),
     )
+}
+
+fn get_documents_save_data_path_standard(
+    username: &str,
+    version_directory_name: &str,
+    drive_letter: char,
+) -> Option<Utf8PathBuf> {
+    let drive_path = format!("{}:\\", drive_letter);
+    let standard_path = Utf8PathBuf::from(drive_path)
+        .join("Users")
+        .join(username)
+        .join("Documents")
+        .join("My Games")
+        .join(version_directory_name);
+    let standard_log_path = standard_path.join(LOG_TXT);
+    if standard_log_path.exists() {
+        return Some(standard_path);
+    }
+
+    None
+}
+
+fn get_documents_save_data_path_one_drive(
+    username: &str,
+    version_directory_name: &str,
+    drive_letter: char,
+) -> Option<Utf8PathBuf> {
+    let drive_path = format!("{}:\\", drive_letter);
+    let standard_path = Utf8PathBuf::from(drive_path)
+        .join("Users")
+        .join(username)
+        .join("OneDrive")
+        .join("Documents")
+        .join("My Games")
+        .join(version_directory_name);
+    let standard_log_path = standard_path.join(LOG_TXT);
+    if standard_log_path.exists() {
+        return Some(standard_path);
+    }
+
+    None
 }
 
 fn get_username() -> String {
