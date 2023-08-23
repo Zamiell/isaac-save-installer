@@ -90,22 +90,8 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<Utf8P
     // The standard documents location does not seem to exist, so the user might have a "Documents"
     // directory that is in a custom location. The "dirs_next" library queries the Windows API to
     // determine this.
-    let documents_path = dirs_next::document_dir()
-        .context("Unable to find the path to your \"Documents\" directory.")?;
-    let documents_path_utf8_result = Utf8PathBuf::from_path_buf(documents_path);
-    let documents_path_utf8 = match documents_path_utf8_result {
-        Ok(path_buf) => path_buf,
-        Err(path_buf) => bail!(format!(
-            "Failed to convert the following path to UTF8:\n{:?}",
-            path_buf,
-        )),
-    };
-    let custom_path = documents_path_utf8
-        .join("My Games")
-        .join(&version_directory_name);
-    let custom_log_path = custom_path.join(LOG_TXT);
-    if custom_log_path.exists() {
-        return Ok(custom_path);
+    if let Some(path) = get_documents_save_data_path_custom(&version_directory_name) {
+        return Ok(path);
     }
 
     // As a last resort, try looking in the "OneDrive" directory. (e.g.
@@ -125,9 +111,13 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<Utf8P
         }
     }
 
+    let default_log_txt_path = format!(
+        "C:\\Users\\{}\\Documents\\My Games\\{}\\log.txt",
+        username, version_directory_name
+    );
     bail!(
         "Failed to find your documents save data directory at:\n{}\n\nDo you have the selected version of the game installed? If you do, try opening the game, closing the game, and then retrying (so that the \"log.txt\" file is created).",
-        custom_log_path.to_string().green(),
+        default_log_txt_path.green(),
     )
 }
 
@@ -167,6 +157,28 @@ fn get_documents_save_data_path_one_drive(
     let standard_log_path = standard_path.join(LOG_TXT);
     if standard_log_path.exists() {
         return Some(standard_path);
+    }
+
+    None
+}
+
+fn get_documents_save_data_path_custom(version_directory_name: &str) -> Option<Utf8PathBuf> {
+    let documents_path = match dirs_next::document_dir() {
+        Some(path) => path,
+        None => return None,
+    };
+
+    let documents_path_utf8_result = Utf8PathBuf::from_path_buf(documents_path);
+    let documents_path_utf8 = match documents_path_utf8_result {
+        Ok(path_buf) => path_buf,
+        Err(_path_buf) => return None,
+    };
+    let custom_path = documents_path_utf8
+        .join("My Games")
+        .join(version_directory_name);
+    let custom_log_path = custom_path.join(LOG_TXT);
+    if custom_log_path.exists() {
+        return Some(custom_path);
     }
 
     None
