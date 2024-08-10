@@ -3,7 +3,10 @@ use crate::{
     change_steam_cloud::change_steam_cloud,
     delete::delete,
     enums::{Activity, IsaacVersion},
-    get_input::{prompt_for_activity, prompt_for_isaac_version, prompt_for_save_file_slot},
+    get_input::{
+        check_pirate, prompt_for_activity, prompt_for_isaac_version, prompt_for_save_file_slot,
+        prompt_turn_steam_cloud_off,
+    },
     install::install,
     save_data_path::{
         get_documents_save_data_path, get_steam_cloud_enabled, get_steam_save_data_path,
@@ -21,11 +24,17 @@ pub fn isaac_save_installer() -> Result<()> {
     set_virtual_terminal(true).expect("Failed to set the virtual terminal setting.");
     print_banner();
     check_if_isaac_open()?;
+    check_pirate()?;
 
     let isaac_version = prompt_for_isaac_version()?;
     let steam_save_data_path = get_steam_save_data_path()?;
     let documents_save_data_path = get_documents_save_data_path(isaac_version)?;
-    let steam_cloud_enabled = get_steam_cloud_enabled(&documents_save_data_path)?;
+    let steam_cloud_enabled_initial = get_steam_cloud_enabled(&documents_save_data_path)?;
+    let steam_cloud_enabled =
+        prompt_turn_steam_cloud_off(&documents_save_data_path, steam_cloud_enabled_initial)?;
+
+    // TODO: Verify "log.txt" location.
+
     let save_data_path: &Utf8Path = match steam_cloud_enabled {
         true => &steam_save_data_path,
         false => &documents_save_data_path,
@@ -38,6 +47,11 @@ pub fn isaac_save_installer() -> Result<()> {
     let activity = prompt_for_activity()?;
     if activity == Activity::ChangeSteamCloud {
         return change_steam_cloud(&documents_save_data_path, steam_cloud_enabled);
+    } else if activity == Activity::ManuallyInstall {
+        println!("First, download the fully unlocked save file from here:");
+        println!("https://github.com/Zamiell/isaac-save-installer/tree/main/saves");
+        println!("Second, rename the downloaded file to have the same name as your existing save file, and then overwrite your existing save file with the downloaded one.");
+        return Ok(());
     }
 
     let save_file_slot = prompt_for_save_file_slot(activity)?;
@@ -52,6 +66,7 @@ pub fn isaac_save_installer() -> Result<()> {
         Activity::Backup => backup(save_file, save_file_slot),
         Activity::Delete => delete(save_file, save_file_slot),
         Activity::ChangeSteamCloud => unreachable!(),
+        Activity::ManuallyInstall => unreachable!(),
     }
 }
 
@@ -62,10 +77,6 @@ fn print_banner() {
     println!("| Fully Unlocked Save File Installer |");
     println!("|               v{}               |", VERSION);
     println!("+------------------------------------+");
-    println!();
-    println!("If you have any problems with this installer, you can get help in the");
-    println!("Isaac Speedrunning & Racing Discord server:");
-    println!("{}", "https://discord.com/invite/0Sokdog3miAGKovs".green());
     println!();
 }
 

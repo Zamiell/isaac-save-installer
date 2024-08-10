@@ -1,8 +1,11 @@
 use crate::{
     constants::STEAM_CLOUD_NAME,
     enums::{Activity, IsaacVersion},
+    save_data_path::toggle_steam_cloud_enabled,
 };
 use anyhow::{bail, Context, Result};
+use camino::Utf8Path;
+use colored::*;
 use std::ops::RangeInclusive;
 use text_io::try_read;
 
@@ -18,12 +21,37 @@ fn get_user_input_string() -> Result<String> {
     Ok(trimmed_input)
 }
 
+fn get_user_input_y_n() -> Result<bool> {
+    let input = get_user_input_string()?;
+
+    match input.to_lowercase().as_str() {
+        "y" => Ok(true),
+        "yes" => Ok(true),
+        "n" => Ok(false),
+        "no" => Ok(false),
+        _ => bail!(SELECTION_ERROR_MSG),
+    }
+}
+
 fn get_user_input_number() -> Result<usize> {
     let input = get_user_input_string()?;
     let number: usize = input
         .parse()
         .context(format!("Failed to convert \"{}\" to a number.", input))?;
     Ok(number)
+}
+
+pub fn check_pirate() -> Result<()> {
+    println!("Did you legally purchase the game on Steam?");
+    println!("{}", INPUT_BOOL_EXPLANATION_MSG);
+
+    let input = get_user_input_y_n()?;
+    match input {
+        true => Ok(()),
+        false => {
+            bail!("This installer will only work with the official Steam version of the game.")
+        }
+    }
 }
 
 pub fn prompt_for_isaac_version() -> Result<IsaacVersion> {
@@ -40,6 +68,27 @@ pub fn prompt_for_isaac_version() -> Result<IsaacVersion> {
     let isaac_version = IsaacVersion::from_repr(enum_value).context(SELECTION_ERROR_MSG)?;
 
     Ok(isaac_version)
+}
+
+pub fn prompt_turn_steam_cloud_off(
+    documents_save_data_path: &Utf8Path,
+    steam_cloud_enabled: bool,
+) -> Result<bool> {
+    if !steam_cloud_enabled {
+        return Ok(false);
+    }
+
+    println!("{} You have \"SteamCloud=1\" in your options.ini file, which is not recommended, since it can interfere with installing a full save file. Additionally, you are more likely to permanently lose your save to cloud sync issues. Do you want me to disable it for you?", "Warning:".yellow());
+    println!("{}", INPUT_BOOL_EXPLANATION_MSG);
+
+    let input = get_user_input_y_n()?;
+    match input {
+        true => {
+            toggle_steam_cloud_enabled(documents_save_data_path, steam_cloud_enabled)?;
+            Ok(true)
+        }
+        false => Ok(false),
+    }
 }
 
 pub fn confirm_toggle_steam_cloud(steam_cloud_enabled: bool) -> Result<bool> {
@@ -64,13 +113,7 @@ pub fn confirm_toggle_steam_cloud(steam_cloud_enabled: bool) -> Result<bool> {
     }
     println!("{}", INPUT_BOOL_EXPLANATION_MSG);
 
-    let input = get_user_input_string()?;
-
-    match input.as_str() {
-        "y" => Ok(true),
-        "n" => Ok(false),
-        _ => bail!(SELECTION_ERROR_MSG),
-    }
+    get_user_input_y_n()
 }
 
 pub fn prompt_for_activity() -> Result<Activity> {
@@ -79,6 +122,7 @@ pub fn prompt_for_activity() -> Result<Activity> {
     println!("2) Backup an existing save file.");
     println!("3) Delete an existing save file.");
     println!("4) Change your \"SteamCloud\" setting in the \"options.ini\" file.");
+    println!("5) Manually install a save file without using this installer.");
     println!("{}", INPUT_NUMBER_EXPLANATION_MSG);
 
     let input = get_user_input_number()?;

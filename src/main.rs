@@ -26,8 +26,9 @@ fn main() {
 pub fn error(msg: &Error) -> ! {
     println!("{} {}", "Error:".red(), msg);
     println!();
-    println!("If the error was related to reading/copying a file or reading from the Windows registry, then you can try running this program as an administrator:");
+    println!("If you think the error is related to permissions, then you can try running this program again as an administrator:");
     println!("https://www.digitalcitizen.life/run-as-admin/");
+    println!();
     quit(true);
 }
 

@@ -15,4 +15,5 @@ pub enum Activity {
     Backup,
     Delete,
     ChangeSteamCloud,
+    ManuallyInstall,
 }
