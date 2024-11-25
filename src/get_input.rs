@@ -61,6 +61,7 @@ pub fn prompt_for_isaac_version() -> Result<IsaacVersion> {
     println!("3) The Binding of Isaac: Afterbirth+ (Vanilla through Booster Pack 4)");
     println!("4) The Binding of Isaac: Afterbirth+ (Booster Pack 5)");
     println!("5) The Binding of Isaac: Repentance");
+    println!("6) The Binding of Isaac: Repentance+");
     println!("{}", INPUT_NUMBER_EXPLANATION_MSG);
 
     let input = get_user_input_number()?;
