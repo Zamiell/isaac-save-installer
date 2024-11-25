@@ -196,6 +196,7 @@ fn get_version_directory_name(isaac_version: IsaacVersion) -> String {
             "Binding of Isaac Afterbirth+"
         }
         IsaacVersion::Repentance => "Binding of Isaac Repentance",
+        IsaacVersion::RepentancePlus => "Binding of Isaac Repentance+",
     };
 
     String::from(directory_name)
