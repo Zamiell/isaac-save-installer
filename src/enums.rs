@@ -7,6 +7,7 @@ pub enum IsaacVersion {
     AfterbirthPlus,
     AfterbirthPlusBP5,
     Repentance,
+    RepentancePlus,
 }
 
 #[derive(Clone, Copy, FromRepr, PartialEq)]
