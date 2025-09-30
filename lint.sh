@@ -14,6 +14,6 @@ SECONDS=0
 
 cd "$DIR"
 cargo fmt --check
-cargo clippy
+cargo clippy -- -D warnings
 
 echo "Successfully linted $REPO_NAME in $SECONDS seconds."
