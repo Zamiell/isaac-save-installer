@@ -163,11 +163,7 @@ fn get_documents_save_data_path_one_drive(
 }
 
 fn get_documents_save_data_path_custom(version_directory_name: &str) -> Option<Utf8PathBuf> {
-    let documents_path = match dirs_next::document_dir() {
-        Some(path) => path,
-        None => return None,
-    };
-
+    let documents_path = dirs_next::document_dir()?;
     let documents_path_utf8_result = Utf8PathBuf::from_path_buf(documents_path);
     let documents_path_utf8 = match documents_path_utf8_result {
         Ok(path_buf) => path_buf,
