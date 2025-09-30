@@ -121,7 +121,7 @@ fn get_file_name_prefix(isaac_version: IsaacVersion, steam_cloud_enabled: bool) 
         IsaacVersion::Afterbirth => "ab_",
         IsaacVersion::AfterbirthPlus | IsaacVersion::AfterbirthPlusBP5 => "abp_",
         IsaacVersion::Repentance => "rep_",
-        IsaacVersion::RepentancePlus => "repp_"
+        IsaacVersion::RepentancePlus => "repp_",
     };
 
     String::from(prefix)

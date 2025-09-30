@@ -2,7 +2,7 @@ use crate::{
     enums::IsaacVersion,
     save_files::{
         SAVE_FILE_AFTERBIRTH, SAVE_FILE_AFTERBIRTH_PLUS, SAVE_FILE_AFTERBIRTH_PLUS_BP5,
-        SAVE_FILE_REBIRTH, SAVE_FILE_REPENTANCE, SAVE_FILE_REPENTANCE_PLUS
+        SAVE_FILE_REBIRTH, SAVE_FILE_REPENTANCE, SAVE_FILE_REPENTANCE_PLUS,
     },
 };
 use anyhow::{Context, Result};
@@ -36,6 +36,6 @@ fn get_save_file_bytes(isaac_version: IsaacVersion) -> &'static [u8] {
         IsaacVersion::AfterbirthPlus => SAVE_FILE_AFTERBIRTH_PLUS,
         IsaacVersion::AfterbirthPlusBP5 => SAVE_FILE_AFTERBIRTH_PLUS_BP5,
         IsaacVersion::Repentance => SAVE_FILE_REPENTANCE,
-        IsaacVersion::RepentancePlus => SAVE_FILE_REPENTANCE_PLUS
+        IsaacVersion::RepentancePlus => SAVE_FILE_REPENTANCE_PLUS,
     }
 }

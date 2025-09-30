@@ -11,3 +11,6 @@ pub const SAVE_FILE_AFTERBIRTH_PLUS_BP5: &[u8] =
 
 pub const SAVE_FILE_REPENTANCE: &[u8] =
     include_bytes!("../saves/Repentance/persistentgamedata.dat");
+
+pub const SAVE_FILE_REPENTANCE_PLUS: &[u8] =
+    include_bytes!("../saves/Repentance+/persistentgamedata.dat");
