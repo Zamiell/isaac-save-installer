@@ -1,6 +1,7 @@
 use crate::{
     constants::{OPTIONS_INI, OPTIONS_SECTION_NAME, STEAM_CLOUD_NAME},
     enums::IsaacVersion,
+    get_input::prompt_for_log_txt_path,
 };
 use anyhow::{bail, Context, Result};
 use camino::{Utf8Path, Utf8PathBuf};
@@ -111,14 +112,59 @@ pub fn get_documents_save_data_path(isaac_version: IsaacVersion) -> Result<Utf8P
         }
     }
 
+    // We could not automatically find the directory, so ask the user for it. (This can happen if
+    // the user has renamed their Windows user or is running the game through Wine/Proton.)
     let default_log_txt_path = format!(
-        "C:\\Users\\{}\\Documents\\My Games\\{}\\log.txt",
-        username, version_directory_name
+        "C:\\Users\\{}\\Documents\\My Games\\{}\\{}",
+        username, version_directory_name, LOG_TXT,
     );
-    bail!(
-        "Failed to find your documents save data directory at:\n{}\n\nDo you have the selected version of the game installed? If you do, try opening the game, closing the game, and then retrying (so that the \"log.txt\" file is created).",
+    println!(
+        "{} Failed to find your documents save data directory at:\n{}\n\nDo you have the selected version of the game installed? If you do, try opening the game, closing the game, and then retrying (so that the \"{}\" file is created).\n",
+        "Warning:".yellow(),
         default_log_txt_path.green(),
-    )
+        LOG_TXT,
+    );
+
+    prompt_for_documents_save_data_path()
+}
+
+/// Repeatedly asks the user for the location of their "log.txt" file (or the directory containing
+/// it) until a valid one is provided. An empty input aborts.
+fn prompt_for_documents_save_data_path() -> Result<Utf8PathBuf> {
+    loop {
+        let input = prompt_for_log_txt_path()?;
+        if input.is_empty() {
+            bail!("No \"{}\" location was provided.", LOG_TXT);
+        }
+
+        match parse_documents_save_data_path(&input) {
+            Some(path) => return Ok(path),
+            None => println!(
+                "{} Failed to find a \"{}\" file at:\n{}\n",
+                "Error:".red(),
+                LOG_TXT,
+                input.green(),
+            ),
+        }
+    }
+}
+
+/// Converts user input into the directory containing "log.txt", if it exists. Accepts either the
+/// path to the "log.txt" file itself or the directory that contains it.
+fn parse_documents_save_data_path(input: &str) -> Option<Utf8PathBuf> {
+    // Windows Explorer's "Copy as path" feature wraps the path in double quotes.
+    let trimmed = input.trim().trim_matches(|c| c == '"' || c == '\'');
+    let path = Utf8PathBuf::from(trimmed);
+
+    if path.is_dir() {
+        return path.join(LOG_TXT).is_file().then_some(path);
+    }
+
+    if path.is_file() && path.file_name() == Some(LOG_TXT) {
+        return path.parent().map(Utf8Path::to_path_buf);
+    }
+
+    None
 }
 
 fn get_documents_save_data_path_standard(

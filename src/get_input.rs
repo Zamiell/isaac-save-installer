@@ -154,6 +154,24 @@ pub fn prompt_for_save_file_slot(activity: Activity) -> Result<usize> {
     bail!(SELECTION_ERROR_MSG)
 }
 
+pub fn prompt_for_log_txt_path() -> Result<String> {
+    println!(
+        "Please paste the full path to your \"log.txt\" file (or the directory that contains it)."
+    );
+    println!("(e.g. C:\\Users\\Alice\\Documents\\My Games\\Binding of Isaac Repentance+\\log.txt)");
+    println!("[Paste the path and press enter, or press enter without typing anything to quit.]");
+
+    // We cannot use "try_read!" here, since it stops at the first whitespace character and paths
+    // can contain spaces (e.g. "My Games").
+    let mut input = String::new();
+    std::io::stdin()
+        .read_line(&mut input)
+        .context("Failed to read the path.")?;
+    println!();
+
+    Ok(input.trim().to_string())
+}
+
 pub fn prompt_for_user_to_hit_enter() -> Result<()> {
     get_user_input_string()?;
     Ok(())
